@@ -280,7 +280,7 @@ exports.generatePostfixConfig = async (domainName) => {
 # Generated on ${new Date().toISOString()}
 
 # Basic Settings
-myhostname = ${hostname}.${domainName}
+myhostname = mail.${domainName}
 mydomain = ${domainName}
 myorigin = $mydomain
 inet_interfaces = all
