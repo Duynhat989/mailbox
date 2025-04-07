@@ -32,7 +32,7 @@ const logFormat = process.env.NODE_ENV === 'production'
 app.use(morgan(logFormat));
 
 // Serve static files if needed
-app.use('/public', express.static(path.join(__dirname, 'public')));
+app.use('/public', express.static(path.join(__dirname, 'public/dist')));
 
 // API routes
 app.use('/api', domainRoutes);

@@ -54,7 +54,6 @@ async function createSMTPServer() {
 
               // Save message to database whether recipient exists or not
               // await Message.create(messageData);
-              console.log('Message data:', Message.fromEmail);
               Message.create(messageData)
 
               callback();

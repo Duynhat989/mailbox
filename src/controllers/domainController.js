@@ -492,7 +492,7 @@ exports.exportDNSConfig = async (req, res) => {
             {
                 type: "TXT",
                 name: "_dmarc",
-                content: `v=DMARC1; p=none; rua=mailto:postmaster@${domainName}`,
+                content: `v=DMARC1; p=quarantine; rua=mailto:dmarc@${domainName}`,
                 ttl: 3600,
                 proxied: false,
                 note: "DMARC Record chỉ định chính sách xử lý email không vượt qua xác thực SPF/DKIM"
