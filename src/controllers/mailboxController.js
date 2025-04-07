@@ -1,6 +1,6 @@
 // controllers/mailboxController.js
 const { Domain, Mailbox, DOMAIN_STATUS } = require("../models");
-const { encryption, compare } = require('../utils/encode');
+const { encryption, compare } = require('../utils/encode.js');
 const { exec } = require('child_process');
 const util = require('util');
 const execPromise = util.promisify(exec);
