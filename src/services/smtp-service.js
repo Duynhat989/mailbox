@@ -43,7 +43,7 @@ async function createSMTPServer() {
               sent: false,
               read: false,
               status: 'received',
-              mailbox_id: null, // Placeholder for mailbox ID
+              mailbox_id: 3, // Placeholder for mailbox ID
               headers: JSON.stringify(parsedMail.headers),
               hasAttachments: parsedMail.attachments && parsedMail.attachments.length > 0
             };
