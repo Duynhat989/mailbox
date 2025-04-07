@@ -1,0 +1,45 @@
+{
+    "name": "simple-email-server",
+    "version": "1.0.0",
+    "description": "Simple NodeJS email server with JSON storage and Internet connectivity",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js",
+        "dev": "nodemon index.js"
+    },
+    "dependencies": {
+        "bcrypt": "^5.1.0",
+        "bcryptjs": "^3.0.2",
+        "body-parser": "^1.19.0",
+        "compression": "^1.7.4",
+        "cors": "^2.8.5",
+        "dotenv": "^16.0.3",
+        "express": "^4.17.1",
+        "helmet": "^6.0.1",
+        "mailparser": "^3.5.0",
+        "morgan": "^1.10.0",
+        "mysql2": "^2.3.3",
+        "nodemailer": "^6.8.0",
+        "sequelize": "^6.28.0",
+        "smtp-server": "^3.11.0",
+        "uuid": "^9.0.0"
+    },
+    "devDependencies": {
+        "nodemon": "^3.0.1"
+    },
+    "engines": {
+        "node": ">=14.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/yourusername/simple-email-server.git"
+    },
+    "keywords": [
+        "email",
+        "smtp",
+        "nodejs",
+        "server"
+    ],
+    "author": "Your Name",
+    "license": "MIT"
+}
