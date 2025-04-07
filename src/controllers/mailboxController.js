@@ -50,7 +50,16 @@ exports.createMailbox = async (req, res) => {
         });
         
         // Apply configuration changes
-        await applyVirtualDomainsConfig();
+        try {
+            await applyVirtualDomainsConfig();
+        } catch (error) {
+            console.error('Error applying virtual domains configuration:', error);
+            return res.status(500).json({
+                status: 0,
+                message: "Error applying configuration",
+                data: null
+            });
+        }
         
         // Create mailbox directory
         try {
