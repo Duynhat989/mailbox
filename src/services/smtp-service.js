@@ -3,7 +3,7 @@ const SMTPServer = require('smtp-server').SMTPServer;
 const { simpleParser } = require('mailparser');
 
 // Import models
-// const Message = require('../models/message-model');
+const { Message, Mailbox } = require('../models');
 
 /**
  * Create SMTP server for receiving emails
@@ -12,7 +12,7 @@ const { simpleParser } = require('mailparser');
 async function createSMTPServer() {
   try {
     // Get email server configuration
-    
+
     return new SMTPServer({
       secure: false,
       authOptional: true,
@@ -31,28 +31,37 @@ async function createSMTPServer() {
             // Extract recipient email
             const to = parsedMail.to.value[0].address;
             const fromMail = parsedMail.from.value[0].address
-            console.log('fromMail:', fromMail);
-            // Prepare message data 
-            const messageData = {
-              messageId: parsedMail.messageId,
-              fromEmail: fromMail,
-              toEmail: to,
-              subject: parsedMail.subject || '',
-              textContent: parsedMail.text || '',
-              htmlContent: parsedMail.html || '',
-              sent: false,
-              read: false,
-              status: 'received',
-              mailbox_id: 3, // Placeholder for mailbox ID
-              headers: JSON.stringify(parsedMail.headers),
-              hasAttachments: parsedMail.attachments && parsedMail.attachments.length > 0
-            };
+            let resutl = await Mailbox.findOne({
+              where: { email: to, status: 1 }
+            });
+            if (resutl) {
+              console.log('fromMail:', fromMail);
+              // Prepare message data 
+              const messageData = {
+                messageId: parsedMail.messageId,
+                fromEmail: fromMail,
+                toEmail: to,
+                subject: parsedMail.subject || '',
+                textContent: parsedMail.text || '',
+                htmlContent: parsedMail.html || '',
+                sent: false,
+                read: false,
+                status: 'received',
+                mailbox_id: resutl.id, // Placeholder for mailbox ID
+                headers: JSON.stringify(parsedMail.headers),
+                hasAttachments: parsedMail.attachments && parsedMail.attachments.length > 0
+              };
 
-            // Save message to database whether recipient exists or not
-            // await Message.create(messageData);
-            console.log('Message data:', messageData);
-            
-            callback();
+              // Save message to database whether recipient exists or not
+              // await Message.create(messageData);
+              console.log('Message data:', Message.fromEmail);
+              Message.create(messageData)
+
+              callback();
+            } else {
+              console.log('Recipient not found:', to);
+            }
+
           } catch (err) {
             console.error('Error processing incoming email:', err);
             callback(new Error('Error processing email'));
@@ -69,7 +78,7 @@ async function createSMTPServer() {
       disabledCommands: ['STARTTLS'],
       size: 10 * 1024 * 1024, // 10MB default
       onData(stream, session, callback) {
-        stream.on('data', () => {});
+        stream.on('data', () => { });
         stream.on('end', () => callback());
       }
     });
