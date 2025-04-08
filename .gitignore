@@ -2,6 +2,6 @@
 # .env
 /stores/
 /temp_files/
-/public/
+# /public/
 /uploads/
 tokens.json

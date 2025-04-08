@@ -1,0 +1,29 @@
+body{
+  margin: 0;
+  padding: 0;
+  font-family: "Sora", sans-serif;
+  font-size: 13px;
+}
+#app {
+  width: 100%;
+  margin: 0 auto;
+  font-weight: normal;
+}
+*{
+  /* color: #00365d; */
+}
+.flex{
+  display: flex;
+}
+a,
+.green {
+  text-decoration: none;
+  transition: 0.4s;
+  padding: 3px;
+}
+h1{
+  font-size: 2rem !important;
+}
+@media (hover: hover) {
+  
+}

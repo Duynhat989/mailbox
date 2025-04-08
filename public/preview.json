@@ -1,0 +1,11 @@
+{
+    "subscription":{
+        "type":"base",
+        "expired":"ngày hết hạn"
+    },
+    "limit":{
+        "date":"2025-02-02",
+        "request":"5",
+        "limit":"25"
+    }
+}
