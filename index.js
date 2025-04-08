@@ -14,6 +14,7 @@ const { initializeDatabase } = require('./src/config/config.js');
 const smtpService = require('./src/services/smtp-service');
 // Routes
 const domainRoutes = require('./src/routes');
+const authRoutes = require('./src/routes/authRoutes.js');
 
 // Initialize Express app
 const app = express();
@@ -32,19 +33,20 @@ const logFormat = process.env.NODE_ENV === 'production'
 app.use(morgan(logFormat));
 
 // Serve static files if needed
-app.use('/public', express.static(path.join(__dirname, 'public/dist')));
+app.use('/', express.static(path.join(__dirname, 'public/dist')));
 
 // API routes
+app.use('/api/auth', authRoutes);
 app.use('/api', domainRoutes);
 
 // Root route
-app.get('/', (req, res) => {
-  res.json({
-    name: 'Email Server API (Sequelize Version)',
-    version: process.env.npm_package_version || '1.0.0',
-    status: 'running'
-  });
-});
+// app.get('/', (req, res) => {
+//   res.json({
+//     name: 'Email Server API (Sequelize Version)',
+//     version: process.env.npm_package_version || '1.0.0',
+//     status: 'running'
+//   });
+// });
 
 // 404 handler
 app.use((req, res) => {

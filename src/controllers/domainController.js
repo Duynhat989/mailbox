@@ -94,6 +94,7 @@ exports.addDomain = async (req, res) => {
 exports.getDomains = async (req, res) => {
     try {
         const domains = await Domain.findAll({
+            attributes:["id","name"],
             order: [['is_primary', 'DESC'], ['name', 'ASC']]
         });
 
