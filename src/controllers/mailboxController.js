@@ -288,12 +288,12 @@ exports.deleteMailbox = async (req, res) => {
         await applyVirtualDomainsConfig();
 
         // Try to remove mailbox directory (non-critical)
-        try {
-            await execPromise(`sudo rm -rf /var/mail/vhosts/${domainName}/${username}`);
-        } catch (err) {
-            console.error(`Error removing mailbox directory: ${err.message}`);
-            // Continue even if directory removal fails
-        }
+        // try {
+        //     await execPromise(`sudo rm -rf /var/mail/vhosts/${domainName}/${username}`);
+        // } catch (err) {
+        //     console.error(`Error removing mailbox directory: ${err.message}`);
+        //     // Continue even if directory removal fails
+        // }
 
         res.status(200).json({
             status: 1,
