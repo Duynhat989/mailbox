@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const domainController = require('../controllers/domainController');
 const mailboxController = require('../controllers/mailboxController');
+const messageController = require('../controllers/messageController');
 const aliasController = require('../controllers/aliasController');
 // const { authMiddleware } = require('../middlewares/auth');
 
@@ -23,6 +24,9 @@ router.get('/domains/:domain_id/mailboxes', mailboxController.getDomainMailboxes
 router.put('/mailboxes/:id', mailboxController.updateMailbox);
 router.delete('/mailboxes/:id', mailboxController.deleteMailbox);
 router.post('/mailboxes/authenticate', mailboxController.authenticateMailbox);
+
+router.get('/message/:id', messageController.getMessage);
+
 
 // Alias routes
 router.post('/aliases', aliasController.createAlias);
