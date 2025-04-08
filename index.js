@@ -34,7 +34,7 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 const logFormat = process.env.NODE_ENV === 'production' 
   ? 'combined' 
   : 'dev';
-app.use(morgan(logFormat));
+// app.use(morgan(logFormat));
 
 // Serve static files if needed
 app.use('/', express.static(path.join(__dirname, 'public/dist')));
@@ -53,9 +53,9 @@ app.use('/api', domainRoutes);
 // });
 
 // 404 handler
-// app.use((req, res) => {
-//   res.status(404).json({ error: 'Not found', message: 'The requested resource does not exist' });
-// });
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not found', message: 'The requested resource does not exist' });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

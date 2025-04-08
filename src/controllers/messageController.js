@@ -12,7 +12,6 @@ exports.getMessageAll = async (req, res) => {
     const { id } = req.params;
     try {
         const decoded = await getPayloadToken(id);
-        console.log(decoded)
         const msg = await Message.findAll({
             where: {
                 mailbox_id: decoded.id
