@@ -27,7 +27,7 @@ router.post('/mailboxes/authenticate', mailboxController.authenticateMailbox);
 
 router.get('/message/:id', messageController.getMessageAll);
 router.get('/message/:id/detail/:messageId', messageController.getMessage);
-router.get('/message/:id/read/:messageId', messageController.readMessage);
+router.get('/message/read/:messageId', messageController.readMessage);
 
 
 // Alias routes

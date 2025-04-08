@@ -28,6 +28,7 @@ exports.getMessageAll = async (req, res) => {
                 "htmlContent",
                 "createdAt"
             ],
+            order: [["createdAt", "DESC"]], // Sắp theo thời gian mới nhất
             limit:20
         })
         if (msg) {
@@ -89,15 +90,11 @@ exports.getMessage = async (req, res) => {
     }
 };
 exports.readMessage = async (req, res) => {
-    const { id, messageId } = req.params;
-    try {
-        // Decode the token to get user information
-        const decoded = await getPayloadToken(id);
-        
+    const { messageId } = req.params;
+    try {        
         // Find the message in the database
         const msg = await Message.findOne({
             where: {
-                mailbox_id: decoded.id,
                 messageId: messageId
             }
         });
@@ -105,22 +102,18 @@ exports.readMessage = async (req, res) => {
         if (msg) {
             // Mark the message as read
             msg.read = true;
-            
             // Save the updated message to the database
             await msg.save();
             
             return res.status(200).json({
-                success: true,
-                message: "Message marked as read successfully"
+                success: true
             });
         } else {
             return res.status(404).json({
-                success: false,
-                message: "Message not found"
+                success: false
             });
         }
     } catch (err) {
-        console.error("Error in readMessage:", err);
         return res.status(500).json({
             success: false,
             message: "Server error occurred",

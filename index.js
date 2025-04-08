@@ -53,9 +53,9 @@ app.use('/api', domainRoutes);
 // });
 
 // 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not found', message: 'The requested resource does not exist' });
-});
+// app.use((req, res) => {
+//   res.status(404).json({ error: 'Not found', message: 'The requested resource does not exist' });
+// });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
