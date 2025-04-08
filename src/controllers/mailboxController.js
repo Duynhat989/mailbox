@@ -1,6 +1,7 @@
 // controllers/mailboxController.js
 const { Domain, Mailbox, DOMAIN_STATUS } = require("../models");
 const { encryption, compare } = require('../utils/encode.js');
+const { createNewToken } = require('../middlewares/manageToken');
 const { exec } = require('child_process');
 const util = require('util');
 const execPromise = util.promisify(exec);
@@ -62,13 +63,13 @@ exports.createMailbox = async (req, res) => {
         }
 
         // Create mailbox directory
-        try {
-            await execPromise(`sudo mkdir -p /var/mail/vhosts/${domain.name}/${username}`);
-            await execPromise(`sudo chown -R vmail:vmail /var/mail/vhosts/${domain.name}/${username}`);
-        } catch (err) {
-            console.error(`Error creating mailbox directory: ${err.message}`);
-            // Continue even if directory creation fails
-        }
+        // try {
+        //     await execPromise(`sudo mkdir -p /var/mail/vhosts/${domain.name}/${username}`);
+        //     await execPromise(`sudo chown -R vmail:vmail /var/mail/vhosts/${domain.name}/${username}`);
+        // } catch (err) {
+        //     console.error(`Error creating mailbox directory: ${err.message}`);
+        //     // Continue even if directory creation fails
+        // }
 
         const token = createNewToken({
             id: mailbox.id,

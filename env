@@ -7,7 +7,7 @@ DB_PASSWORD=@Vietduy123
 # Server Configuration
 PORT=2053
 SMTP_PORT=3000
-NODE_ENV=development
+NODE_ENV=development12
 
 # Security
 JWT_SECRET=your_jwt_secret_key

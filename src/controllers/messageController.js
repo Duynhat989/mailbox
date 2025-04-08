@@ -1,287 +1,46 @@
 // controllers/mailboxController.js
-const { Domain, Mailbox, DOMAIN_STATUS } = require("../models");
+const { Domain, Mailbox, DOMAIN_STATUS, Message } = require("../models");
 const { encryption, compare } = require('../utils/encode.js');
+const { createNewToken, getPayloadToken } = require('../middlewares/manageToken');
 const { exec } = require('child_process');
 const util = require('util');
 const execPromise = util.promisify(exec);
 const { Op } = require('sequelize');
 
 // Create a new mailbox for a domain
-exports.getMessage = async (req, res) => {
+exports.getMessageAll = async (req, res) => {
     const { id } = req.params;
-    
-    res.status(201).json({
-        status: 1,
-        message: "Mailbox"
-    });
     try {
-        
-    } catch (err) {
-        return res.status(500).json({
-            status: 0,
-            message: "Error services",
-            data: null
-        });
-    }
-};
-
-// Get all mailboxes
-exports.getAllMailboxes = async (req, res) => {
-    try {
-        const mailboxes = await Mailbox.findAll({
-            attributes: { exclude: ['password'] },
-            include: [
-                {
-                    model: Domain,
-                    attributes: ['name', 'is_primary', 'status']
-                }
-            ]
-        });
-        
-        res.status(200).json({
-            status: 1,
-            message: "Mailboxes retrieved successfully",
-            data: mailboxes
-        });
-    } catch (err) {
-        return res.status(500).json({
-            status: 0,
-            message: "Error services",
-            data: null
-        });
-    }
-};
-
-// Get mailboxes for a specific domain
-exports.getDomainMailboxes = async (req, res) => {
-    const { domain_id } = req.params;
-    
-    try {
-        // Check if domain exists
-        const domain = await Domain.findByPk(domain_id);
-        
-        if (!domain) {
-            return res.status(404).json({
-                status: 0,
-                message: "Domain not found",
-                data: null
-            });
-        }
-        
-        // Get all mailboxes for the domain
-        const mailboxes = await Mailbox.findAll({
-            where: { domain_id },
-            attributes: { exclude: ['password'] } // Don't return password hashes
-        });
-        
-        res.status(200).json({
-            status: 1,
-            message: "Mailboxes retrieved successfully",
-            data: {
-                domain: domain.name,
-                mailboxes
-            }
-        });
-    } catch (err) {
-        return res.status(500).json({
-            status: 0,
-            message: "Error services",
-            data: null
-        });
-    }
-};
-
-// Get mailbox by ID
-exports.getMailbox = async (req, res) => {
-    const { id } = req.params;
-    
-    try {
-        const mailbox = await Mailbox.findByPk(id, {
-            attributes: { exclude: ['password'] },
-            include: [
-                {
-                    model: Domain,
-                    attributes: ['name', 'is_primary', 'status']
-                }
-            ]
-        });
-        
-        if (!mailbox) {
-            return res.status(404).json({
-                status: 0,
-                message: "Mailbox not found",
-                data: null
-            });
-        }
-        
-        res.status(200).json({
-            status: 1,
-            message: "Mailbox retrieved successfully",
-            data: mailbox
-        });
-    } catch (err) {
-        return res.status(500).json({
-            status: 0,
-            message: "Error services",
-            data: null
-        });
-    }
-};
-
-// Update mailbox
-exports.updateMailbox = async (req, res) => {
-    const { id } = req.params;
-    const { password, quota, status } = req.body;
-    
-    try {
-        // Find mailbox
-        const mailbox = await Mailbox.findByPk(id);
-        
-        if (!mailbox) {
-            return res.status(404).json({
-                status: 0,
-                message: "Mailbox not found",
-                data: null
-            });
-        }
-        
-        // Update fields
-        const updates = {};
-        
-        if (password) {
-            updates.password = await encryption(password);
-        }
-        
-        if (quota) {
-            updates.quota = quota;
-        }
-        
-        if (status !== undefined) {
-            updates.status = status;
-        }
-        
-        // Apply updates
-        await mailbox.update(updates);
-        
-        // If status changed, apply configuration
-        if (status !== undefined) {
-            await applyVirtualDomainsConfig();
-        }
-        
-        res.status(200).json({
-            status: 1,
-            message: "Mailbox updated successfully",
-            data: {
-                id: mailbox.id,
-                email: mailbox.email,
-                username: mailbox.username,
-                quota: mailbox.quota,
-                status: mailbox.status
-            }
-        });
-    } catch (err) {
-        return res.status(500).json({
-            status: 0,
-            message: "Error services",
-            data: null
-        });
-    }
-};
-
-// Delete mailbox
-exports.deleteMailbox = async (req, res) => {
-    const { id } = req.params;
-    
-    try {
-        const mailbox = await Mailbox.findByPk(id, {
-            include: [{ model: Domain }]
-        });
-        
-        if (!mailbox) {
-            return res.status(404).json({
-                status: 0,
-                message: "Mailbox not found",
-                data: null
-            });
-        }
-        
-        // Get domain and username for directory removal
-        const domainName = mailbox.Domain.name;
-        const username = mailbox.username;
-        
-        // Delete mailbox
-        await mailbox.destroy();
-        
-        // Apply configuration changes
-        await applyVirtualDomainsConfig();
-        
-        // Try to remove mailbox directory (non-critical)
-        try {
-            await execPromise(`sudo rm -rf /var/mail/vhosts/${domainName}/${username}`);
-        } catch (err) {
-            console.error(`Error removing mailbox directory: ${err.message}`);
-            // Continue even if directory removal fails
-        }
-        
-        res.status(200).json({
-            status: 1,
-            message: "Mailbox deleted successfully",
-            data: null
-        });
-    } catch (err) {
-        return res.status(500).json({
-            status: 0,
-            message: "Error services",
-            data: null
-        });
-    }
-};
-
-// Authenticate mailbox (for IMAP/POP3/SMTP)
-exports.authenticateMailbox = async (req, res) => {
-    const { email, password } = req.body;
-    
-    try {
-        const mailbox = await Mailbox.findOne({ 
-            where: { 
-                email,
-                status: DOMAIN_STATUS.ACTIVE
+        const decoded = await getPayloadToken(id);
+        console.log(decoded)
+        const msg = await Message.findAll({
+            where: {
+                mailbox_id: decoded.id
             },
-            include: [{ 
-                model: Domain,
-                where: { status: DOMAIN_STATUS.ACTIVE }
-            }]
-        });
-        
-        if (!mailbox) {
-            return res.status(401).json({
-                status: 0,
-                message: "Authentication failed",
-                data: null
+            attributes: [
+                "id",
+                "messageId",
+                "fromEmail",
+                "toEmail",
+                "subject",
+                "read",
+                "textContent",
+                "htmlContent",
+                "createdAt"
+            ],
+            limit:20
+        })
+        if (msg) {
+            res.status(200).json({
+                success: true,
+                data: msg
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                data: []
             });
         }
-        
-        // Check password
-        const passwordValid = await compare(password, mailbox.password);
-        
-        if (!passwordValid) {
-            return res.status(401).json({
-                status: 0,
-                message: "Authentication failed",
-                data: null
-            });
-        }
-        
-        res.status(200).json({
-            status: 1,
-            message: "Authentication successful",
-            data: {
-                id: mailbox.id,
-                email: mailbox.email,
-                username: mailbox.username,
-                domain: mailbox.Domain.name
-            }
-        });
     } catch (err) {
         return res.status(500).json({
             status: 0,
@@ -290,58 +49,84 @@ exports.authenticateMailbox = async (req, res) => {
         });
     }
 };
-
-// Apply virtual domains configuration
-async function applyVirtualDomainsConfig() {
+exports.getMessage = async (req, res) => {
+    const { id, messageId } = req.params;
     try {
-        // Get all active domains with their mailboxes
-        const domains = await Domain.findAll({
-            where: { status: DOMAIN_STATUS.ACTIVE },
-            include: [
-                {
-                    model: Mailbox,
-                    where: { status: DOMAIN_STATUS.ACTIVE },
-                    required: false
-                }
+        const decoded = await getPayloadToken(id);
+        console.log(decoded)
+        const msg = await Message.findAll({
+            where: {
+                mailbox_id: decoded.id,
+                messageId:messageId
+            },
+            attributes: [
+                "id",
+                "messageId",
+                "fromEmail",
+                "toEmail",
+                "textContent",
+                "htmlContent",
+                "createdAt"
             ]
+        })
+        if (msg) {
+            res.status(200).json({
+                success: true,
+                data: msg
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                data: []
+            });
+        }
+    } catch (err) {
+        return res.status(500).json({
+            status: 0,
+            message: "Error services",
+            data: null
         });
-
-        // Create virtual mailboxes mapping
-        let virtualMailboxes = '';
-        domains.forEach(domain => {
-            if (domain.Mailboxes && domain.Mailboxes.length > 0) {
-                domain.Mailboxes.forEach(mailbox => {
-                    virtualMailboxes += `${mailbox.email} ${domain.name}/${mailbox.username}/\n`;
-                });
+    }
+};
+exports.readMessage = async (req, res) => {
+    const { id, messageId } = req.params;
+    try {
+        // Decode the token to get user information
+        const decoded = await getPayloadToken(id);
+        
+        // Find the message in the database
+        const msg = await Message.findOne({
+            where: {
+                mailbox_id: decoded.id,
+                messageId: messageId
             }
         });
         
-        // Write to virtual_mailbox_maps file
-        const fs = require('fs');
-        const path = require('path');
-        const tempFile = path.join('/tmp', `virtual_mailbox_maps_${Date.now()}`);
-        
-        fs.writeFileSync(tempFile, virtualMailboxes);
-        
-        // Update Postfix maps
-        await execPromise(`sudo cp ${tempFile} /etc/postfix/virtual_mailbox_maps`);
-        await execPromise(`sudo postmap /etc/postfix/virtual_mailbox_maps`);
-        await execPromise(`sudo postfix reload`);
-        
-        // Clean up
-        fs.unlinkSync(tempFile);
-        
-        return {
-            success: true,
-            message: "Virtual mailboxes configuration applied"
-        };
+        if (msg) {
+            // Mark the message as read
+            msg.read = true;
+            
+            // Save the updated message to the database
+            await msg.save();
+            
+            return res.status(200).json({
+                success: true,
+                message: "Message marked as read successfully"
+            });
+        } else {
+            return res.status(404).json({
+                success: false,
+                message: "Message not found"
+            });
+        }
     } catch (err) {
-        console.error('Error applying virtual mailboxes configuration:', err);
-        return {
+        console.error("Error in readMessage:", err);
+        return res.status(500).json({
             success: false,
-            error: err.message
-        };
+            message: "Server error occurred",
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
-}
+};
 
 module.exports = exports;

@@ -25,7 +25,9 @@ router.put('/mailboxes/:id', mailboxController.updateMailbox);
 router.delete('/mailboxes/:id', mailboxController.deleteMailbox);
 router.post('/mailboxes/authenticate', mailboxController.authenticateMailbox);
 
-router.get('/message/:id', messageController.getMessage);
+router.get('/message/:id', messageController.getMessageAll);
+router.get('/message/:id/detail/:messageId', messageController.getMessage);
+router.get('/message/:id/read/:messageId', messageController.readMessage);
 
 
 // Alias routes

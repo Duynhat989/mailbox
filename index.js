@@ -5,10 +5,13 @@ const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
 const path = require('path');
+const http = require('http');
+const { Server } = require('socket.io');
 require('dotenv').config();
 
 // Database connection
 const { initializeDatabase } = require('./src/config/config.js');
+const socketService = require('./src/services/socket-service.js'); // Import Socket Service
 
 // Services
 const smtpService = require('./src/services/smtp-service');
@@ -19,6 +22,7 @@ const authRoutes = require('./src/routes/authRoutes.js');
 // Initialize Express app
 const app = express();
 
+const server = http.createServer(app);
 // Set up middleware
 app.use(helmet()); // Security headers
 app.use(compression()); // Compress responses
@@ -171,6 +175,17 @@ if (require.main === module) {
     process.exit(1);
   });
 }
+// Khởi tạo Socket.IO server
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CORS_ORIGIN || "*",
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+// Khởi tạo socket service để có thể truy cập từ bất kỳ đâu
+socketService.initialize(io);
 
 // Export for testing
 module.exports = { app, startServer };

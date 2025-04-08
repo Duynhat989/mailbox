@@ -32,7 +32,7 @@ const initializeDatabase = async () => {
       ? { force: true } 
       : { alter: true };
     
-    await sequelize.sync(syncOptions);
+    await sequelize.sync({});
     console.log('All models were synchronized successfully.');
     
     return true;
