@@ -514,7 +514,7 @@ onMounted(async () => {
   // Check for existing user session
   const storedUser = localStorage.getItem('user');
   const storedIsAdmin = localStorage.getItem('isAdmin');
-  darkMode.value = JSON.parse(localStorage.getItem('darkMode')) ?? false;
+  darkMode.value = JSON.parse(localStorage.getItem('darkMode')) ?? true;
   if (storedUser) {
     user.value = JSON.parse(storedUser);
     isAdmin.value = storedIsAdmin ? JSON.parse(storedIsAdmin) : false;
