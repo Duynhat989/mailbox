@@ -5,9 +5,7 @@ const { sequelize } = require('../config/config');
 const ROLES = {
   ADMIN: 'admin',
   CUSTOMER: 'customer',
-  BUSINESS: 'business',
-  SERVICE: 'service',
-  SELLER: 'seller'
+  GUEST: 'guest'
 };
 
 const User = sequelize.define('User', {

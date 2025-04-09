@@ -7,8 +7,8 @@
       <AppSidebar :is-collapsed="isSidebarCollapsed" :current-folder="currentFolder" :is-admin="isAdmin"
         :managed-accounts="managedAccounts" :active-account="activeAccount" @toggle-sidebar="toggleSidebar"
         @change-folder="changeFolder" @refresh-emails="refreshEmails" @switch-account="switchAccount"
-        @reset-language="showLanguageSelector = true"
-        @login-account="showLoginModal = true" @create-new-account="showCreateAccountModal = true" />
+        @reset-language="showLanguageSelector = true" @login-account="showLoginModal = true"
+        @create-new-account="showCreateAccountModal = true" />
 
       <!-- Main Content -->
       <div class="main-content">
@@ -315,48 +315,18 @@ const handleSignInWithGoogle = async (response) => {
             picture: userInfo.picture,
             access_token: response.access_token
           })
-          // console.log('apiResponse:', apiResponse)
-          if (apiResponse.success) {
-            // Store user data
-            user.value = apiResponse.data
-            localStorage.setItem('temp_user', JSON.stringify(apiResponse.data))
-            localStorage.setItem('temp_token', apiResponse.data.token)
-            localStorage.setItem('isAdmin', true);
-            // location.reload()
+          if (apiResponse.data.success) {
+            isAdmin.value = true;
+            await fetchManagedAccounts();
+            // Lưu thông tin người dùng
+            user.value = apiResponse.data.data;
+            localStorage.setItem('user', JSON.stringify(apiResponse.data));
+            localStorage.setItem('isAdmin', JSON.stringify(isAdmin.value));
           }
         } catch (error) {
           console.error('Google login error:', error)
           // Show error message to user
         }
-        // Trong ứng dụng thực tế, bạn sẽ gọi API của mình
-        // Mock response cho demo
-        console.log('Google user info:', userInfo);
-        const apiResponse = {
-          success: true,
-          data: {
-            id: userInfo.sub,
-            address: userInfo.email,
-            token: 'mock-google-token',
-            username: userInfo.email.split('@')[0],
-            domain: userInfo.email.split('@')[1],
-            fullName: userInfo.name,
-            avatar: userInfo.picture
-          }
-        };
-
-        // Kiểm tra nếu là admin
-        if (userInfo.email === 'admin@mail.clone') {
-          isAdmin.value = true;
-          await fetchManagedAccounts();
-        } else {
-          isAdmin.value = false;
-        }
-
-        // Lưu thông tin người dùng
-        user.value = apiResponse.data;
-        localStorage.setItem('user', JSON.stringify(apiResponse.data));
-        localStorage.setItem('isAdmin', JSON.stringify(isAdmin.value));
-
         // Đóng modal và tải email
         showLoginModal.value = false;
         await fetchEmails();
@@ -421,34 +391,6 @@ const switchAccount = (account) => {
   fetchEmails(account?.id);
 };
 
-const createNewAccount = async (accountData) => {
-  try {
-    // Create a new account
-    const newAccount = {
-      id: `acc${Date.now()}`,
-      address: `${accountData.username}@${accountData.domain}`,
-      username: accountData.username,
-      domain: accountData.domain,
-      createdAt: new Date().toISOString(),
-      unreadCount: 0
-    };
-
-    // Add to managed accounts
-    managedAccounts.value.push(newAccount);
-
-    // Close modal
-    showCreateAccountModal.value = false;
-
-    // Optionally switch to the new account
-    switchAccount(newAccount);
-
-    return true;
-  } catch (error) {
-    console.error('Failed to create account:', error);
-    alert('Failed to create account. Please try again.');
-    return false;
-  }
-};
 
 const deleteAccount = (accountId) => {
   // Find the account
@@ -547,7 +489,7 @@ onMounted(async () => {
   /* Dark theme (default) */
   --bg-color: #161b2b;
   --sidebar-bg: #1e2538;
-  --primary-color: #6366f1;
+  --primary-color: #82c2ff;
   --primary-hover: #4f46e5;
   --text-color: #e2e8f0;
   --text-muted: #94a3b8;

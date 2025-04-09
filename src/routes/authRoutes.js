@@ -38,20 +38,20 @@ router.get('/check-phone',
 // Protected routes - require authentication
 // Verify token validity
 router.get('/verify-token',
-  auth([ROLES.ADMIN, ROLES.CUSTOMER, ROLES.BUSINESS, ROLES.SERVICE, ROLES.SELLER]),
+  auth([ROLES.ADMIN, ROLES.CUSTOMER, ROLES.GUEST]),
   authController.verifyToken
 );
 
 // Change own password
 router.post('/change-password',
-  auth([ROLES.ADMIN, ROLES.CUSTOMER, ROLES.BUSINESS, ROLES.SERVICE, ROLES.SELLER]),
+  auth([ROLES.ADMIN, ROLES.CUSTOMER, ROLES.GUEST]),
   validate(['currentPassword', 'newPassword']),
   authController.changePassword
 );
 
 // Logout
 router.post('/logout',
-  auth([ROLES.ADMIN, ROLES.CUSTOMER, ROLES.BUSINESS, ROLES.SERVICE, ROLES.SELLER]),
+  auth([ROLES.ADMIN, ROLES.CUSTOMER, ROLES.GUEST]),
   authController.logout
 );
 

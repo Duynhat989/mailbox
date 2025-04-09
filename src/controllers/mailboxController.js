@@ -109,7 +109,6 @@ exports.getAllMailboxes = async (req, res) => {
                 }
             ]
         });
-
         res.status(200).json({
             status: 1,
             message: "Mailboxes retrieved successfully",
@@ -276,11 +275,6 @@ exports.deleteMailbox = async (req, res) => {
                 data: null
             });
         }
-
-        // Get domain and username for directory removal
-        const domainName = mailbox.Domain.name;
-        const username = mailbox.username;
-
         // Delete mailbox
         await mailbox.destroy();
 
@@ -312,7 +306,6 @@ exports.deleteMailbox = async (req, res) => {
 // Authenticate mailbox (for IMAP/POP3/SMTP)
 exports.authenticateMailbox = async (req, res) => {
     const { email, password } = req.body;
-
     try {
         const mailbox = await Mailbox.findOne({
             where: {
@@ -415,5 +408,45 @@ async function applyVirtualDomainsConfig() {
         };
     }
 }
+exports.getMailboxUser = async (req, res) => {
+
+    const userId = req.user.id;
+    const { limit = 10, page = 1 } = req.query
+    try {
+        const mailbox = await Mailbox.findAll({
+            where: {
+                user_id: userId
+            },
+            attributes: ["email", "username", "status"],
+            include: [
+                {
+                    model: Domain,
+                    attributes: ['name', 'status']
+                }
+            ]
+        }
+        );
+
+        if (!mailbox) {
+            return res.status(404).json({
+                status: 0,
+                message: "Mailbox not found",
+                data: null
+            });
+        }
+
+        res.status(200).json({
+            status: 1,
+            message: "Mailbox retrieved successfully",
+            data: mailbox
+        });
+    } catch (err) {
+        return res.status(500).json({
+            status: 0,
+            message: "Error services",
+            data: null
+        });
+    }
+};
 
 module.exports = exports;

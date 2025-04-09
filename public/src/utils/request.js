@@ -12,6 +12,14 @@ const request = axios.create({
         'Content-Type': 'application/json'
     },
 });
+request.interceptors.request.use(config => {
+    // Lấy token từ localStorage
+    const user = JSON.parse(localStorage.getItem('user')) || null;
+    if (user) {
+        config.headers.Authorization = `Bearer ${user?.data?.token}`;
+    }
+    return config;
+}, error => Promise.reject(error));
 
 // // Hàm mã hóa data
 // const encryptData = (data) => {

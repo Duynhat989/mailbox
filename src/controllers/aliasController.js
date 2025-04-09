@@ -8,11 +8,11 @@ const { Op } = require('sequelize');
 // Create a new alias for a domain
 exports.createAlias = async (req, res) => {
     const { domain_id, alias, destination } = req.body;
-    
+
     try {
         // Find the domain
         const domain = await Domain.findByPk(domain_id);
-        
+
         if (!domain) {
             return res.status(404).json({
                 status: 0,
@@ -20,16 +20,16 @@ exports.createAlias = async (req, res) => {
                 data: null
             });
         }
-        
+
         // Check if alias already contains @ symbol
         let fullAlias = alias;
         if (!alias.includes('@')) {
             fullAlias = `${alias}@${domain.name}`;
         }
-        
+
         // Check if alias already exists
         const existingAlias = await Alias.findOne({ where: { alias: fullAlias } });
-        
+
         if (existingAlias) {
             return res.status(400).json({
                 status: 0,
@@ -37,7 +37,7 @@ exports.createAlias = async (req, res) => {
                 data: null
             });
         }
-        
+
         // Validate destination email
         if (!destination.includes('@')) {
             return res.status(400).json({
@@ -46,7 +46,7 @@ exports.createAlias = async (req, res) => {
                 data: null
             });
         }
-        
+
         // Create the alias
         const newAlias = await Alias.create({
             alias: fullAlias,
@@ -54,10 +54,10 @@ exports.createAlias = async (req, res) => {
             domain_id,
             status: DOMAIN_STATUS.ACTIVE
         });
-        
+
         // Apply configuration changes
         await applyVirtualAliasConfig();
-        
+
         res.status(201).json({
             status: 1,
             message: "Alias created successfully",
@@ -88,7 +88,7 @@ exports.getAllAliases = async (req, res) => {
                 }
             ]
         });
-        
+
         res.status(200).json({
             status: 1,
             message: "Aliases retrieved successfully",
@@ -106,11 +106,11 @@ exports.getAllAliases = async (req, res) => {
 // Get aliases for a specific domain
 exports.getDomainAliases = async (req, res) => {
     const { domain_id } = req.params;
-    
+
     try {
         // Check if domain exists
         const domain = await Domain.findByPk(domain_id);
-        
+
         if (!domain) {
             return res.status(404).json({
                 status: 0,
@@ -118,12 +118,12 @@ exports.getDomainAliases = async (req, res) => {
                 data: null
             });
         }
-        
+
         // Get all aliases for the domain
         const aliases = await Alias.findAll({
             where: { domain_id }
         });
-        
+
         res.status(200).json({
             status: 1,
             message: "Aliases retrieved successfully",
@@ -144,7 +144,7 @@ exports.getDomainAliases = async (req, res) => {
 // Get alias by ID
 exports.getAlias = async (req, res) => {
     const { id } = req.params;
-    
+
     try {
         const alias = await Alias.findByPk(id, {
             include: [
@@ -154,7 +154,7 @@ exports.getAlias = async (req, res) => {
                 }
             ]
         });
-        
+
         if (!alias) {
             return res.status(404).json({
                 status: 0,
@@ -162,7 +162,7 @@ exports.getAlias = async (req, res) => {
                 data: null
             });
         }
-        
+
         res.status(200).json({
             status: 1,
             message: "Alias retrieved successfully",
@@ -181,11 +181,11 @@ exports.getAlias = async (req, res) => {
 exports.updateAlias = async (req, res) => {
     const { id } = req.params;
     const { destination, status } = req.body;
-    
+
     try {
         // Find alias
         const alias = await Alias.findByPk(id);
-        
+
         if (!alias) {
             return res.status(404).json({
                 status: 0,
@@ -193,10 +193,10 @@ exports.updateAlias = async (req, res) => {
                 data: null
             });
         }
-        
+
         // Update fields
         const updates = {};
-        
+
         if (destination) {
             // Validate destination email
             if (!destination.includes('@')) {
@@ -208,17 +208,17 @@ exports.updateAlias = async (req, res) => {
             }
             updates.destination = destination;
         }
-        
+
         if (status !== undefined) {
             updates.status = status;
         }
-        
+
         // Apply updates
         await alias.update(updates);
-        
+
         // Apply configuration
         await applyVirtualAliasConfig();
-        
+
         res.status(200).json({
             status: 1,
             message: "Alias updated successfully",
@@ -241,10 +241,10 @@ exports.updateAlias = async (req, res) => {
 // Delete alias
 exports.deleteAlias = async (req, res) => {
     const { id } = req.params;
-    
+
     try {
         const alias = await Alias.findByPk(id);
-        
+
         if (!alias) {
             return res.status(404).json({
                 status: 0,
@@ -252,13 +252,13 @@ exports.deleteAlias = async (req, res) => {
                 data: null
             });
         }
-        
+
         // Delete alias
         await alias.destroy();
-        
+
         // Apply configuration changes
         await applyVirtualAliasConfig();
-        
+
         res.status(200).json({
             status: 1,
             message: "Alias deleted successfully",
@@ -297,22 +297,22 @@ async function applyVirtualAliasConfig() {
                 });
             }
         });
-        
+
         // Write to virtual_alias_maps file
         const fs = require('fs');
         const path = require('path');
         const tempFile = path.join('/tmp', `virtual_alias_maps_${Date.now()}`);
-        
+
         fs.writeFileSync(tempFile, virtualAliases);
-        
+
         // Update Postfix maps
         await execPromise(`sudo cp ${tempFile} /etc/postfix/virtual_alias_maps`);
         await execPromise(`sudo postmap /etc/postfix/virtual_alias_maps`);
         await execPromise(`sudo postfix reload`);
-        
+
         // Clean up
         fs.unlinkSync(tempFile);
-        
+
         return {
             success: true,
             message: "Virtual aliases configuration applied"

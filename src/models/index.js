@@ -1,6 +1,7 @@
 // models/index.js
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config/config");
+const { User } = require("./userModel");
 
 const DOMAIN_STATUS = {
   ACTIVE: 1,
@@ -58,6 +59,14 @@ const Mailbox = sequelize.define(
       allowNull: false,
       references: {
         model: Domain,
+        key: 'id'
+      }
+    },
+    user_id: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: User,
         key: 'id'
       }
     },
@@ -185,6 +194,7 @@ const Message = sequelize.define(
 // Establish relationships
 Domain.hasMany(Mailbox, { foreignKey: 'domain_id' });
 Mailbox.belongsTo(Domain, { foreignKey: 'domain_id' });
+Mailbox.belongsTo(User, { foreignKey: 'user_id' });
 Message.belongsTo(Mailbox, { foreignKey: 'mailbox_id' });
 
 Domain.hasMany(Alias, { foreignKey: 'domain_id' });

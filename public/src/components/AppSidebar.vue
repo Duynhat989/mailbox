@@ -4,7 +4,7 @@
       <div class="logo">
         <!-- <img width="35" src="../assets/images/1743478415988.png" alt="" class="logo-img"> -->
         <template v-if="!isCollapsed">
-          <span class="logo-at"><span style="color: rgb(225 255 0);">Flast</span>Mail</span>
+          <span class="logo-at"><span style="text-transform: uppercase;">FlastMail</span></span>
         </template>
       </div>
     </div>

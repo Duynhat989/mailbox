@@ -5,7 +5,9 @@ const domainController = require('../controllers/domainController');
 const mailboxController = require('../controllers/mailboxController');
 const messageController = require('../controllers/messageController');
 const aliasController = require('../controllers/aliasController');
+const { ROLES } = require('../models/userModel.js'); // Adjust the path as necessary
 // const { authMiddleware } = require('../middlewares/auth');
+const auth = require('../middlewares/authMiddleware');
 
 // Domain routes
 router.post('/domains', domainController.addDomain);
@@ -17,13 +19,15 @@ router.get('/:id/dns-export', domainController.exportDNSConfig);
 
 
 // Mailbox routes
-router.post('/mailboxes', mailboxController.createMailbox);
+router.post('/mailboxes',auth([ROLES.ADMIN, ROLES.CUSTOMER, ROLES.GUEST]), mailboxController.createMailbox);
 router.get('/mailboxes', mailboxController.getAllMailboxes);
 router.get('/mailboxes/:id', mailboxController.getMailbox);
 router.get('/domains/:domain_id/mailboxes', mailboxController.getDomainMailboxes);
 router.put('/mailboxes/:id', mailboxController.updateMailbox);
 router.delete('/mailboxes/:id', mailboxController.deleteMailbox);
 router.post('/mailboxes/authenticate', mailboxController.authenticateMailbox);
+// Lấy danh sahs email của user
+router.get('/mailboxes/user', mailboxController.getMailboxUser);
 
 router.get('/message/:id', messageController.getMessageAll);
 router.get('/message/:id/detail/:messageId', messageController.getMessage);
