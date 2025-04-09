@@ -14,9 +14,8 @@ const auth = (roles = []) => {
 
     try {
       const decoded = getPayloadToken(token);
+      console.log("decoded",decoded)
       req.user = decoded;
-
-    console.log(decoded)
       if (roles.length && !roles.includes(req.user.role)) {
         // Vai trò không được phép
         return res.status(403).json({ message: 'Not forbidden' });

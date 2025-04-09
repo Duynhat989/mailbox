@@ -18,6 +18,11 @@ router.post('/google-login',
   authController.googleLogin
 );
 
+router.post('/visit',
+  validate(['googleId', 'email']),
+  authController.googleLogin
+);
+
 // Forgot password - request verification code
 router.post('/forgot-password',
   validate(['email']),
