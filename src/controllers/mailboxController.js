@@ -11,83 +11,83 @@ const { Op } = require('sequelize');
 exports.createMailbox = async (req, res) => {
     const { domain_id, username, password, quota } = req.body;
     // Find the domain
+    const domain = await Domain.findByPk(domain_id);
 
-    try {
-        const domain = await Domain.findByPk(domain_id);
-
-        if (!domain) {
-            return res.status(404).json({
-                status: 0,
-                message: "Domain not found",
-                data: null
-            });
-        }
-
-        // Create email address
-        const email = `${username}@${domain.name}`;
-
-        // Check if email already exists
-        const existingMailbox = await Mailbox.findOne({ where: { email } });
-
-        if (existingMailbox) {
-            return res.status(400).json({
-                status: 0,
-                message: "Email address already exists",
-                data: null
-            });
-        }
-
-        // Encrypt password
-        const hashedPassword = await encryption(password);
-
-        // Create the mailbox
-        const mailbox = await Mailbox.create({
-            email,
-            username,
-            password: hashedPassword,
-            domain_id,
-            quota: quota || 1024, // Default 1GB
-            status: DOMAIN_STATUS.ACTIVE
+    if (!domain) {
+        return res.status(404).json({
+            status: 0,
+            message: "Domain not found",
+            data: null
         });
+    }
 
-        // Apply configuration changes
-        try {
-            await applyVirtualDomainsConfig();
-        } catch (error) {
-            console.error('Error applying virtual domains configuration:', error);
-            return res.status(500).json({
-                status: 0,
-                message: "Error applying configuration",
-                data: null
-            });
-        }
+    // Create email address
+    const email = `${username}@${domain.name}`;
 
-        // Create mailbox directory
-        // try {
-        //     await execPromise(`sudo mkdir -p /var/mail/vhosts/${domain.name}/${username}`);
-        //     await execPromise(`sudo chown -R vmail:vmail /var/mail/vhosts/${domain.name}/${username}`);
-        // } catch (err) {
-        //     console.error(`Error creating mailbox directory: ${err.message}`);
-        //     // Continue even if directory creation fails
-        // }
+    // Check if email already exists
+    const existingMailbox = await Mailbox.findOne({ where: { email } });
 
-        const token = createNewToken({
+    if (existingMailbox) {
+        return res.status(400).json({
+            status: 0,
+            message: "Email address already exists",
+            data: null
+        });
+    }
+
+    // Encrypt password
+    const hashedPassword = await encryption(password);
+
+    // Create the mailbox
+    const mailbox = await Mailbox.create({
+        email,
+        username,
+        password: hashedPassword,
+        domain_id,
+        quota: quota || 1024, // Default 1GB
+        status: DOMAIN_STATUS.ACTIVE
+    });
+
+    // Apply configuration changes
+    try {
+        await applyVirtualDomainsConfig();
+    } catch (error) {
+        console.error('Error applying virtual domains configuration:', error);
+        return res.status(500).json({
+            status: 0,
+            message: "Error applying configuration",
+            data: null
+        });
+    }
+
+    // Create mailbox directory
+    // try {
+    //     await execPromise(`sudo mkdir -p /var/mail/vhosts/${domain.name}/${username}`);
+    //     await execPromise(`sudo chown -R vmail:vmail /var/mail/vhosts/${domain.name}/${username}`);
+    // } catch (err) {
+    //     console.error(`Error creating mailbox directory: ${err.message}`);
+    //     // Continue even if directory creation fails
+    // }
+
+    const token = createNewToken({
+        id: mailbox.id,
+        email: mailbox.email,
+        username: mailbox.username,
+        domain: domain.name
+    });
+    res.status(201).json({
+        status: 1,
+        message: "Mailbox created successfully",
+        data: {
             id: mailbox.id,
             email: mailbox.email,
             username: mailbox.username,
+            token,
             domain: domain.name
-        });
-        res.status(201).json({
-            status: 1,
-            message: "Mailbox created successfully",
-            data: {
-                id: mailbox.id,
-                email: mailbox.email,
-                username: mailbox.username,
-                token,
-                domain: domain.name
-            }
-        });
+        }
+    });
+    try {
+        
     } catch (err) {
         return res.status(500).json({
             status: 0,
